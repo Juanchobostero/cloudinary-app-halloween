@@ -1,0 +1,126 @@
+---
+import Layout from '../layouts/Layout.astro'
+import { CldUploadWidget } from 'astro-cloudinary'
+import Button from 'fulldev-ui/components/Button.astro'
+import Heading from 'fulldev-ui/components/Heading.astro'
+
+import { getCollection } from "astro:content"
+import { CldImage } from 'astro-cloudinary'
+const images = await getCollection("images")
+console.log(images)
+---
+
+<Layout title="Welcome to Astro.">
+	<main>
+		<Heading color='brand' contrast={false}>
+			Please submit your image Bro
+		</Heading>
+		<CldUploadWidget 
+			id='upload-widget'
+			uploadPreset="upload-unsigned-images"
+			options={{
+				sources: ['local'],
+				multiple: false,
+				maxFiles: 1,
+				language: 'es',
+				showPoweredBy: false,
+				text: {
+					es: {
+						or: 'O',
+						menu: {
+							"files": "Subir desde tu dispositivo",
+						},
+						local: {
+							browse: "Seleccionar",
+							dd_title_single: "Arrastra tu imagen aquí",
+						}
+					}
+				}
+			}}
+		>
+			<Button color="brand" as="button">Upload</Button>
+		  </CldUploadWidget>
+		  <ul>
+			{
+				images.map((image) => (
+					<li>
+						<a href={`/photo?id=${image.data.public_id}`}>
+							<CldImage
+							class="img" 
+								src={image.data.public_id}
+								width={300}
+								height={300}
+								crop={{
+									type: 'fill',
+									source: true
+								}} 
+							
+							/>
+						</a>
+					</li>
+				))
+			}
+		  </ul>
+	</main>
+</Layout>
+
+<script>
+	import { navigate } from 'astro:transitions/client'
+
+	const widget = document.getElementById('upload-widget')
+
+	if ( widget ) {
+		widget.addEventListener('clduploadwidget:success', ((
+			e: CustomEvent<{ info: { public_id: string } }>
+		) => {
+			const public_id = e.detail.info.public_id
+			navigate(`/photo?id=${public_id}`)
+		}) as EventListener);
+		}
+</script>
+
+<style>
+	main {
+		width: 800px;
+		margin: 0 auto;
+		padding-top: 100px;
+		text-align: center;
+	}
+
+	h2 {
+		text-align: center;
+		margin-bottom: 32px;
+	}
+
+	@keyframes reveal {
+		from {
+			opacity: 0;
+			transform: 0 100px;
+		}
+		to {
+			opacity: 1;
+			transform: 0 0;
+		}
+	}
+
+	.img {
+		animation: reveal both;
+		animation-timeline: view();
+		animation-range: entry 20% cover 30%;
+	}
+
+	h2 {
+		margin-bottom: 32px;
+	}
+
+	ul {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.5rem;
+		list-style: none;
+	}
+</style>
+
+<script>
+
+</script>
